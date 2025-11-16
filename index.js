@@ -19,6 +19,9 @@ const COLLECTION = "contacts";
 const client = new MongoClient(MONGO_URI);
 const db = client.db(DBNAME);
 
+app.get("/name", (req, res) => { 
+   res.send("My name is Abraham");
+} );
 
 app.get("/contacts", async(req, res) => {
 
@@ -102,7 +105,7 @@ app.post("/contacts", async (req, res)=>{
 
         if (existingContact) {
             return res.status(409).json({
-                message: `Contact with name '${contact_name}' already exists.`,
+                message: `Contact with name ${contact_name} already exists.`,
             });
         }
 
@@ -121,7 +124,7 @@ app.post("/contacts", async (req, res)=>{
 
         // Acknowledge frontend
         res.status(201);
-        res.json({message: "New contact added successfully"});
+        res.json({message: "Response: New contact added successfully"});
 
     } catch (error) {
         console.error("Error in POST /contacts:", error);
@@ -131,6 +134,48 @@ app.post("/contacts", async (req, res)=>{
         await client.close();
     }
 });
+
+app.delete("/contacts/:name", async (req, res) => {
+    try {
+        // Read parameter id         
+        const name = req.params.name;
+        console.log("Contact to delete :",name);
+
+        // Connect to MongoDB
+        await client.connect();
+        console.log("Node connected successfully to POST MongoDB");
+
+        // Reference collection
+        const contactsCollection = db.collection(COLLECTION);
+
+        // Check if contact already exists
+        const existingContact = await contactsCollection.findOne({
+            contact_name: name,
+        });
+
+        if (!existingContact) {
+            return res.status(404).json({
+                message: `Contact with name ${name} does NOT exist.`,
+            });
+        }
+       
+        // Define query
+        const query = { contact_name: name };
+        
+        // Delete one contact
+        const results = await db.collection("contacts").deleteOne(query);
+
+        // Response to Client
+        res.status(200);
+        // res.send(results);
+        res.send({ message: `Contact ${name} was DELETED successfully.` });
+    }
+    catch (error){
+        console.error("Error deleting robot:", error);
+        res.status(500).send({ message: 'Internal Server Error'+error });
+    }
+});
+
 
 
 // Start server
