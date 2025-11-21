@@ -1,21 +1,27 @@
 import express from "express";
 import cors from "cors";
+import dotenv from "dotenv";
 import { MongoClient } from "mongodb";
+
+// Load environment variables FIRST
+dotenv.config();
+
+// Create Express app
+const app = express();
+
+// Middleware
+app.use(cors());
+app.use(express.json()); // replaces body-parser
 
 // Server configuration
 const PORT = process.env.PORT ?? 8081;
 const HOST = process.env.HOST ?? "0.0.0.0";
 
-// Create Express app
-const app = express();
-// Middleware
-app.use(cors());
-app.use(express.json()); // replaces body-parser
+// MongoDB configuration
+const MONGO_URI = process.env.MONGO_URI;
+const DBNAME = process.env.DBNAME;
+const COLLECTION = process.env.COLLECTION;
 
-// MongoDB
-const MONGO_URI = "mongodb+srv://abrahamaldaco_db_user:D2wRJCAzJ5j8JJzZ@cluster0.hnpc6xp.mongodb.net/?appName=Cluster0";
-const DBNAME = "cs3870db";
-const COLLECTION = "contacts";
 const client = new MongoClient(MONGO_URI);
 const db = client.db(DBNAME);
 
@@ -163,7 +169,7 @@ app.delete("/contacts/:name", async (req, res) => {
         const query = { contact_name: name };
         
         // Delete one contact
-        const results = await db.collection("contacts").deleteOne(query);
+        const results = await db.collection(COLLECTION).deleteOne(query);
 
         // Response to Client
         res.status(200);
