@@ -17,17 +17,15 @@ app.use(express.json()); // replaces body-parser
 const PORT = process.env.PORT ?? 8081;
 const HOST = process.env.HOST ?? "0.0.0.0";
 
-// MongoDB configuration
+// MongoDB
 const MONGO_URI = process.env.MONGO_URI;
 const DBNAME = process.env.DBNAME;
 const COLLECTION = process.env.COLLECTION;
 
+
 const client = new MongoClient(MONGO_URI);
 const db = client.db(DBNAME);
 
-app.get("/name", (req, res) => { 
-   res.send("My name is Abraham");
-} );
 
 app.get("/contacts", async(req, res) => {
 
@@ -111,7 +109,7 @@ app.post("/contacts", async (req, res)=>{
 
         if (existingContact) {
             return res.status(409).json({
-                message: `Contact with name ${contact_name} already exists.`,
+                message: `Contact with name '${contact_name}' already exists.`,
             });
         }
 
@@ -130,7 +128,7 @@ app.post("/contacts", async (req, res)=>{
 
         // Acknowledge frontend
         res.status(201);
-        res.json({message: "Response: New contact added successfully"});
+        res.json({message: "New contact added successfully"});
 
     } catch (error) {
         console.error("Error in POST /contacts:", error);
@@ -141,25 +139,22 @@ app.post("/contacts", async (req, res)=>{
     }
 });
 
+
 app.delete("/contacts/:name", async (req, res) => {
     try {
         // Read parameter id         
         const name = req.params.name;
         console.log("Contact to delete :",name);
-
-        // Connect to MongoDB
+         // Connect to MongoDB
         await client.connect();
         console.log("Node connected successfully to POST MongoDB");
-
-        // Reference collection
+         // Reference collection
         const contactsCollection = db.collection(COLLECTION);
-
-        // Check if contact already exists
+         // Check if contact already exists
         const existingContact = await contactsCollection.findOne({
             contact_name: name,
         });
-
-        if (!existingContact) {
+         if (!existingContact) {
             return res.status(404).json({
                 message: `Contact with name ${name} does NOT exist.`,
             });
@@ -167,11 +162,9 @@ app.delete("/contacts/:name", async (req, res) => {
        
         // Define query
         const query = { contact_name: name };
-        
         // Delete one contact
-        const results = await db.collection(COLLECTION).deleteOne(query);
-
-        // Response to Client
+        const results = await db.collection("contacts").deleteOne(query);
+         // Response to Client
         res.status(200);
         // res.send(results);
         res.send({ message: `Contact ${name} was DELETED successfully.` });
@@ -181,7 +174,6 @@ app.delete("/contacts/:name", async (req, res) => {
         res.status(500).send({ message: 'Internal Server Error'+error });
     }
 });
-
 
 
 // Start server
